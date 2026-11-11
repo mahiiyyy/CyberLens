@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireAuth } from "../middleware/auth.js";
 import { pool } from "../db/pool.js";
 import { parseEmailEvidence } from "../services/email-forensics.js";
+import { enrichCaseIocs } from "../services/threat-intel.js";
 
 const router = Router();
 const AI_URL = process.env.AI_SERVICE_URL || "http://127.0.0.1:8000";
@@ -140,7 +141,8 @@ router.post("/analyze", requireAuth, async (req,res,next)=>{
       [req.user.sub,"INVESTIGATION_CREATED","CASE",caseId,JSON.stringify({caseNo,sha256,score:result.score})]
     );
     await client.query("COMMIT");
-    res.status(201).json({...result,caseUuid:caseId,evidenceSha256:sha256});
+    const threatIntel = await enrichCaseIocs(caseId);
+    res.status(201).json({...result,caseUuid:caseId,evidenceSha256:sha256,threatIntel});
   } catch(err) {
     await client.query("ROLLBACK").catch(()=>{});
     next(err);
@@ -154,6 +156,15 @@ router.get("/", requireAuth, async (req,res,next)=>{
       [req.user.sub]
     );
     res.json({cases:result.rows});
+  } catch(err) { next(err); }
+});
+
+router.get("/:caseNo/threat-intel", requireAuth, async (req,res,next)=>{
+  try {
+    const owned=await pool.query("SELECT id FROM cases WHERE case_no=$1 AND investigator_id=$2",[req.params.caseNo,req.user.sub]);
+    if(!owned.rowCount) return res.status(404).json({error:"Investigation not found"});
+    const threatIntel=await enrichCaseIocs(owned.rows[0].id);
+    res.json(threatIntel);
   } catch(err) { next(err); }
 });
 
