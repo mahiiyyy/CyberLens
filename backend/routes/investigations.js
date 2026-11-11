@@ -153,6 +153,39 @@ router.post("/analyze", requireAuth, async (req,res,next)=>{
   } finally { client.release(); }
 });
 
+router.get("/dashboard/summary", requireAuth, async (req,res,next)=>{
+  try {
+    const [totals,priority,recent,activity,iocCount]=await Promise.all([
+      pool.query("SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE status NOT IN ('CLOSED','RESOLVED'))::int AS active, COUNT(*) FILTER (WHERE priority='CRITICAL')::int AS critical, COUNT(*) FILTER (WHERE created_at >= NOW()-INTERVAL '24 hours')::int AS today FROM cases WHERE investigator_id=$1",[req.user.sub]),
+      pool.query("SELECT priority,COUNT(*)::int AS count FROM cases WHERE investigator_id=$1 GROUP BY priority",[req.user.sub]),
+      pool.query("SELECT case_no,title,priority,status,created_at,result->>'score' AS score FROM cases WHERE investigator_id=$1 ORDER BY created_at DESC LIMIT 8",[req.user.sub]),
+      pool.query("SELECT date_trunc('hour',created_at) AS hour,COUNT(*)::int AS count FROM cases WHERE investigator_id=$1 AND created_at >= NOW()-INTERVAL '24 hours' GROUP BY 1 ORDER BY 1",[req.user.sub]),
+      pool.query("SELECT COUNT(*)::int AS total,COUNT(*) FILTER (WHERE verdict='MALICIOUS')::int AS malicious FROM iocs i JOIN cases c ON c.id=i.case_id WHERE c.investigator_id=$1",[req.user.sub])
+    ]);
+    res.json({totals:totals.rows[0],priority:priority.rows,recent:recent.rows,activity:activity.rows,iocs:iocCount.rows[0]});
+  } catch(err) { next(err); }
+});
+
+router.get("/iocs", requireAuth, async (req,res,next)=>{
+  try {
+    const result=await pool.query(
+      "SELECT i.id,i.value,i.kind,i.verdict,i.confidence,i.created_at,c.case_no,c.title FROM iocs i JOIN cases c ON c.id=i.case_id WHERE c.investigator_id=$1 ORDER BY i.created_at DESC LIMIT 500",
+      [req.user.sub]
+    );
+    res.json({iocs:result.rows});
+  } catch(err) { next(err); }
+});
+
+router.get("/alerts", requireAuth, async (req,res,next)=>{
+  try {
+    const result=await pool.query(
+      "SELECT c.case_no,c.title,c.priority,c.status,c.created_at,c.result->>'score' AS score FROM cases c WHERE c.investigator_id=$1 AND c.priority IN ('CRITICAL','HIGH') ORDER BY c.created_at DESC LIMIT 100",
+      [req.user.sub]
+    );
+    res.json({alerts:result.rows});
+  } catch(err) { next(err); }
+});
+
 router.get("/", requireAuth, async (req,res,next)=>{
   try {
     const result=await pool.query(
