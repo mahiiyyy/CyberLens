@@ -1,0 +1,30 @@
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Build files
+.next/
+dist/
+build/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE and OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Python
+.pytest_cache/
+*.pyc
