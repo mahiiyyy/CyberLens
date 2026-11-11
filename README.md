@@ -1,23 +1,9 @@
-# 🔐 CyberLens
-### AI-Powered Email Threat Detection, Geolocation & Digital Forensic Intelligence Platform
+AI-Powered Email Threat Detection, Geolocation & Digital Forensic Intelligence Platform
+**Detect. Investigate. Trace. Protect.**
 
-<p align="center">
-  **Detect. Investigate. Trace. Protect.**
-</p>
+An intelligent cybersecurity platform that goes beyond phishing detection to investigate suspicious emails, trace digital infrastructure, correlate threats, and generate forensic intelligence.
 
-<p align="center">
-  An intelligent cybersecurity platform that goes beyond phishing detection to investigate suspicious emails, trace digital infrastructure, correlate threats, and generate forensic intelligence.
-</p>
-
-<p align="center">
-  ![Status](https://img.shields.io/badge/Status-Under%20Development-orange)
-  ![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Vite-blue)
-  ![Backend](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-green)
-  ![AI](https://img.shields.io/badge/AI-Python%20%7C%20FastAPI-purple)
-  ![Database](https://img.shields.io/badge/Database-PostgreSQL-blue)
-</p>
-
----
+![Status](https://img.shields.io/badge/Status-Under%20Development-orange) ![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Vite-blue) ![Backend](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-green) ![AI](https://img.shields.io/badge/AI-Python%20%7C%20FastAPI-purple) ![Database](https://img.shields.io/badge/Database-PostgreSQL-blue)
 
 ## 📌 Overview
 
