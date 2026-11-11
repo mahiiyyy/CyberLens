@@ -24,7 +24,8 @@ const extractUrls = text => {
   return [...found].slice(0, 500);
 };
 const parseAuth = headers => {
-  const values = headers.getAll("authentication-results").map(item => String(item.value || ""));
+  const header = headers.get("authentication-results");
+  const values = (Array.isArray(header) ? header : header ? [header] : []).map(item => typeof item === "string" ? item : String(item.value || item.text || ""));
   const joined = values.join(" ");
   const read = name => {
     const matches = [...joined.matchAll(new RegExp("(?:^|[;\\s])" + name + "\\s*=\\s*(pass|fail|softfail|neutral|none|temperror|permerror)", "gi"))];
@@ -39,7 +40,7 @@ export async function parseEmailEvidence(raw, supplied = {}) {
   const parsed = await simpleParser(raw, { skipHtmlToText: false, skipTextToHtml: true });
   const sender = firstAddress(parsed.from) || clean(supplied.sender);
   const replyTo = firstAddress(parsed.replyTo) || clean(supplied.reply_to);
-  const returnPath = clean(parsed.headers.get("return-path")?.text || supplied.return_path);
+  const returnPath = clean(parsed.headers.get("return-path")?.text || parsed.headers.get("return-path") || supplied.return_path);
   const subject = clean(parsed.subject || supplied.subject || "Untitled email investigation");
   const textBody = parsed.text || parsed.html || String(raw);
   const urls = extractUrls([textBody, parsed.html || ""].join("\n")).concat(supplied.urls || []);
