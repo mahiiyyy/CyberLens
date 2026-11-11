@@ -75,3 +75,10 @@ CREATE TABLE IF NOT EXISTS ioc_intel_cache (
   UNIQUE (kind,value,provider)
 );
 CREATE INDEX IF NOT EXISTS idx_ioc_intel_cache_checked_at ON ioc_intel_cache (checked_at DESC);
+
+CREATE TABLE IF NOT EXISTS domain_intel_cache (
+  domain TEXT PRIMARY KEY,
+  result JSONB NOT NULL,
+  checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_domain_intel_cache_checked_at ON domain_intel_cache (checked_at DESC);
