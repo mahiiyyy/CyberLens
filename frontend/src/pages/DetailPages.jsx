@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Copy, Download, MapPin, MessageSquare, Search, Server, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Copy, Download, MapPin, MessageSquare, Search, Server, ShieldCheck } from "lucide-react";
 import { Badge, Button, Card, PageTitle, Section } from "../components/ui";
 import { demo, campaigns, iocs } from "../data/demo";
 import { api } from "../lib/api";
