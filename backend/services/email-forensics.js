@@ -1,6 +1,7 @@
 import { simpleParser } from "mailparser";
 import { isIP } from "node:net";
 import { createHash } from "node:crypto";
+import { scanAttachment } from "./clamav.js";
 
 const clean = value => String(value || "").replace(/[\r\n\t]+/g, " ").trim();
 const firstAddress = value => {
