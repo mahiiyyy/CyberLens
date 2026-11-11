@@ -1,9 +1,92 @@
-AI-Powered Email Threat Detection, Geolocation & Digital Forensic Intelligence Platform
+# 🔐 CyberLens
+
+### AI-Powered Email Threat Detection, Geolocation & Digital Forensic Intelligence Platform
+
 **Detect. Investigate. Trace. Protect.**
 
 An intelligent cybersecurity platform that goes beyond phishing detection to investigate suspicious emails, trace digital infrastructure, correlate threats, and generate forensic intelligence.
 
-![Status](https://img.shields.io/badge/Status-Under%20Development-orange) ![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Vite-blue) ![Backend](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-green) ![AI](https://img.shields.io/badge/AI-Python%20%7C%20FastAPI-purple) ![Database](https://img.shields.io/badge/Database-PostgreSQL-blue)
+![Status](https://img.shields.io/badge/Status-Under%20Development-orange)
+![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Vite-blue)
+![Backend](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-green)
+![AI](https://img.shields.io/badge/AI-Python%20%7C%20FastAPI-purple)
+![Database](https://img.shields.io/badge/Database-PostgreSQL-blue)
+
+## 🖥️ Project Preview
+
+<p align="center">
+  <img src="./landing-page.png" alt="CyberLens landing page" width="900" />
+</p>
+
+## 📸 Application Screenshots
+
+Explore the CyberLens interface and its investigation modules.
+
+<details open>
+<summary><strong>Overview & Investigation</strong></summary>
+
+**SOC Dashboard**
+
+![CyberLens SOC Dashboard](./dashboard.png)
+
+**New Investigation**
+
+![New Investigation](./new-investigation.png)
+
+**Investigation Results & AI Findings**
+
+![Investigation Results](./investigation-result.png)
+
+</details>
+
+<details>
+<summary><strong>Email Forensics & Authentication</strong></summary>
+
+**Email Header Forensics**
+
+![Email Forensics](./email-forensics.png)
+
+**SPF, DKIM & DMARC Authentication**
+
+![Authentication Analysis](./authentication.png)
+
+</details>
+
+<details>
+<summary><strong>Threat Intelligence & Correlation</strong></summary>
+
+**IP Geolocation**
+
+![IP Geolocation](./geolocation.png)
+
+**Indicators of Compromise (IOC) Center**
+
+![IOC Center](./ioc-center.png)
+
+**Campaign Correlation**
+
+![Campaign Correlation](./campaign-correlation.png)
+
+</details>
+
+<details>
+<summary><strong>Cases, Reporting & AI Assistant</strong></summary>
+
+**Case Management**
+
+![Case Management](./cases.png)
+
+**Forensic Reports**
+
+![Forensic Reports](./reports.png)
+
+**CyberLens AI Assistant**
+
+![CyberLens AI Assistant](./ai-assistant.png)
+
+</details>
+
+---
 
 ## 📌 Overview
 
@@ -273,7 +356,6 @@ GitHub: [@mahiiyyy](https://github.com/mahiiyyy)
 ---
 
 <p align="center">
-  **CYBERLENS**
-  <br/>
+  <strong>CYBERLENS</strong><br/>
   Detection is only the beginning. 🔐
 </p>
