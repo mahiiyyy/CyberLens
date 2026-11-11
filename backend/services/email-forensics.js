@@ -74,6 +74,21 @@ export async function parseEmailEvidence(raw, supplied = {}) {
     if (domain && domain.includes(".")) iocs.push({ value: domain, kind: "DOMAIN" });
   }
 
+  const attachments = await Promise.all(parsed.attachments.map(async file => {
+    const content = file.content || Buffer.alloc(0);
+    const filename = clean(file.filename).slice(0,255);
+    const extension = filename.toLowerCase().split(".").pop();
+    const highRiskExtension = ["exe","scr","js","vbs","bat","cmd","ps1","hta","jar","lnk","iso","msi"].includes(extension);
+    const officeMacro = ["docm","xlsm","pptm"].includes(extension);
+    const antivirus = await scanAttachment(content);
+    return {
+      filename, contentType: clean(file.contentType), size: content.length,
+      sha256: createHash("sha256").update(content).digest("hex"),
+      riskFlags: [...(highRiskExtension ? ["POTENTIALLY_EXECUTABLE"] : []), ...(officeMacro ? ["MACRO_ENABLED_DOCUMENT"] : [])],
+      antivirus,
+    };
+  }));
+
   return {
     subject, body: String(textBody).slice(0, 1_500_000), sender, reply_to: replyTo,
     return_path: returnPath, urls: uniqueUrls,
@@ -86,19 +101,7 @@ export async function parseEmailEvidence(raw, supplied = {}) {
       contentType: clean(parsed.headers.get("content-type")?.text),
       transferEncoding: clean(parsed.headers.get("content-transfer-encoding")?.text),
       attachmentCount: parsed.attachments.length,
-      attachments: parsed.attachments.map(file => {
-        const content = file.content || Buffer.alloc(0);
-        const filename = clean(file.filename).slice(0,255);
-        const extension = filename.toLowerCase().split(".").pop();
-        const highRiskExtension = ["exe","scr","js","vbs","bat","cmd","ps1","hta","jar","lnk","iso","msi"].includes(extension);
-        const officeMacro = ["docm","xlsm","pptm"].includes(extension);
-        return {
-          filename, contentType: clean(file.contentType), size: content.length,
-          sha256: createHash("sha256").update(content).digest("hex"),
-          riskFlags: [...(highRiskExtension ? ["POTENTIALLY_EXECUTABLE"] : []), ...(officeMacro ? ["MACRO_ENABLED_DOCUMENT"] : [])],
-          scanStatus: "NOT_SCANNED",
-        };
-      }),
+      attachments,
     },
     iocs: [...new Map(iocs.map(item => [item.kind + ":" + item.value, item])).values()],
   };
