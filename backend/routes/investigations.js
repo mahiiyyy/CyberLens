@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { requireAuth } from "../middleware/auth.js";
 import { pool } from "../db/pool.js";
+import { parseEmailEvidence } from "../services/email-forensics.js";
 
 const router = Router();
 const AI_URL = process.env.AI_SERVICE_URL || "http://127.0.0.1:8000";
@@ -106,14 +107,21 @@ router.get("/ai-status", requireAuth, async (_req,res)=>{
 router.post("/analyze", requireAuth, async (req,res,next)=>{
   const parsed=inputSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({error:"Invalid evidence payload",details:parsed.error.flatten().fieldErrors});
-  const input=parsed.data;
+  const rawInput=parsed.data;
+  let input;
+  try {
+    const forensic=await parseEmailEvidence(rawInput.body,rawInput);
+    input={...rawInput,...forensic,filename:rawInput.filename,evidence_type:rawInput.evidence_type};
+  } catch (error) {
+    return res.status(422).json({error:"Unable to parse email evidence",details:error.message});
+  }
   const client=await pool.connect();
   try {
     const deterministic=deterministicAnalysis(input);
     const ai=await runAI({...input,urls:deterministic.urls});
     const caseNo=`CL-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${randomUUID().slice(0,8).toUpperCase()}`;
     const result=buildResult(input,deterministic,ai,caseNo);
-    const sha256=createHash("sha256").update(input.body,"utf8").digest("hex");
+    const sha256=createHash("sha256").update(rawInput.body,"utf8").digest("hex");
     await client.query("BEGIN");
     const inserted=await client.query(
       "INSERT INTO cases (case_no,title,priority,status,investigator_id,result) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id",
@@ -122,8 +130,11 @@ router.post("/analyze", requireAuth, async (req,res,next)=>{
     const caseId=inserted.rows[0].id;
     await client.query(
       "INSERT INTO evidence (case_id,sha256,source,evidence_type,integrity,raw_storage_key,processed_analysis,original_filename,content_text) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
-      [caseId,sha256,"USER_UPLOAD",input.evidence_type,"SHA256_VERIFIED",`postgres-evidence:${sha256}`,JSON.stringify(result),input.filename||null,input.body]
+      [caseId,sha256,"USER_UPLOAD",input.evidence_type,"SHA256_RECORDED",`postgres-evidence:${sha256}`,JSON.stringify(result),input.filename||null,rawInput.body]
     );
+    for (const ioc of input.iocs) {
+      await client.query("INSERT INTO iocs (case_id,value,kind,verdict,confidence) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (case_id,value,kind) DO NOTHING", [caseId,ioc.value,ioc.kind,"UNVERIFIED",null]);
+    }
     await client.query(
       "INSERT INTO audit_logs (user_id,action,entity,entity_id,metadata) VALUES ($1,$2,$3,$4,$5)",
       [req.user.sub,"INVESTIGATION_CREATED","CASE",caseId,JSON.stringify({caseNo,sha256,score:result.score})]
