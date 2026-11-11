@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
@@ -35,7 +37,9 @@ CREATE TABLE IF NOT EXISTS iocs (
   value TEXT NOT NULL,
   kind TEXT NOT NULL,
   verdict TEXT NOT NULL,
-  confidence NUMERIC
+  confidence NUMERIC,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (case_id, value, kind)
 );
 
 CREATE TABLE IF NOT EXISTS audit_logs (
@@ -47,3 +51,9 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   metadata JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_cases_investigator_created
+  ON cases (investigator_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_iocs_value ON iocs (value);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_created
+  ON audit_logs (user_id, created_at DESC);
