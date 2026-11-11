@@ -64,3 +64,14 @@ CREATE INDEX IF NOT EXISTS idx_cases_investigator_created ON cases (investigator
 CREATE INDEX IF NOT EXISTS idx_iocs_value ON iocs (value);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_created ON audit_logs (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_evidence_case_created ON evidence (case_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS ioc_intel_cache (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  kind TEXT NOT NULL CHECK (kind IN ('URL','DOMAIN','IP')),
+  value TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  result JSONB NOT NULL,
+  checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (kind,value,provider)
+);
+CREATE INDEX IF NOT EXISTS idx_ioc_intel_cache_checked_at ON ioc_intel_cache (checked_at DESC);
