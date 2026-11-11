@@ -213,6 +213,32 @@ router.get("/:caseNo/domain-intel", requireAuth, async (req,res,next)=>{
   } catch(err) { next(err); }
 });
 
+router.get("/:caseNo/evidence", requireAuth, async (req,res,next)=>{
+  try {
+    const owned=await pool.query(
+      "SELECT e.id,e.sha256,e.source,e.evidence_type,e.integrity,e.original_filename,e.created_at,e.processed_analysis,c.case_no FROM evidence e JOIN cases c ON c.id=e.case_id WHERE c.case_no=$1 AND c.investigator_id=$2 ORDER BY e.created_at DESC",
+      [req.params.caseNo,req.user.sub]
+    );
+    if(!owned.rowCount)return res.status(404).json({error:"Investigation not found"});
+    const audit=await pool.query("SELECT action,entity,metadata,created_at FROM audit_logs WHERE entity_id=(SELECT id::text FROM cases WHERE case_no=$1 AND investigator_id=$2) ORDER BY created_at ASC",[req.params.caseNo,req.user.sub]);
+    res.json({caseNo:req.params.caseNo,evidence:owned.rows.map(row=>({id:row.id,sha256:row.sha256,source:row.source,type:row.evidence_type,integrity:row.integrity,filename:row.original_filename,createdAt:row.created_at,analysis:row.processed_analysis})),audit:audit.rows});
+  } catch(err){next(err);}
+});
+
+router.get("/:caseNo/report", requireAuth, async (req,res,next)=>{
+  try {
+    const found=await pool.query(
+      "SELECT c.case_no,c.title,c.priority,c.status,c.result,c.created_at,e.sha256,e.evidence_type,e.original_filename FROM cases c LEFT JOIN LATERAL (SELECT sha256,evidence_type,original_filename FROM evidence WHERE case_id=c.id ORDER BY created_at DESC LIMIT 1) e ON TRUE WHERE c.case_no=$1 AND c.investigator_id=$2",
+      [req.params.caseNo,req.user.sub]
+    );
+    if(!found.rowCount)return res.status(404).json({error:"Investigation not found"});
+    const row=found.rows[0];
+    const iocRows=await pool.query("SELECT value,kind,verdict,confidence FROM iocs WHERE case_id=(SELECT id FROM cases WHERE case_no=$1) ORDER BY kind,value",[req.params.caseNo]);
+    const result=row.result||{};
+    res.json({generatedAt:new Date().toISOString(),case:{caseNo:row.case_no,title:row.title,priority:row.priority,status:row.status,createdAt:row.created_at},analysis:{verdict:result.verdict||"UNAVAILABLE",score:result.score??null,confidence:result.confidence??null,model:result.aiModel||"Unknown",mode:result.aiMode||"unknown",findings:result.findings||[],explanation:result.aiExplanation||""},evidence:{sha256:row.sha256||null,type:row.evidence_type||null,filename:row.original_filename||null},indicators:iocRows.rows,limitations:["This report reflects stored automated analysis and is not a certification of sender identity.","SPF/DKIM/DMARC values may be reported by the submitted message and are not independently verified unless explicitly stated.","Third-party intelligence and antivirus results may be unavailable or stale."]});
+  } catch(err){next(err);}
+});
+
 router.get("/:caseNo", requireAuth, async (req,res,next)=>{
   try {
     const result=await pool.query(
