@@ -1,71 +1,293 @@
-# CyberLens — PERN + JavaScript SIH Prototype
+# 🔐 CyberLens
+### AI-Powered Email Threat Detection, Geolocation & Digital Forensic Intelligence Platform
 
-CyberLens is an AI-assisted Email Threat Detection & Digital Forensics platform.
+<p align="center">
+  **Detect. Investigate. Trace. Protect.**
+</p>
 
-## Stack
-- PostgreSQL
-- Express.js
-- React
-- Node.js
-- JavaScript (no TypeScript)
-- Vite
-- Tailwind CSS
-- Lucide React
-- Recharts
-- React Router
-- FastAPI AI-service structure
+<p align="center">
+  An intelligent cybersecurity platform that goes beyond phishing detection to investigate suspicious emails, trace digital infrastructure, correlate threats, and generate forensic intelligence.
+</p>
 
-## Run the frontend
-Open a terminal inside `frontend`:
+<p align="center">
+  ![Status](https://img.shields.io/badge/Status-Under%20Development-orange)
+  ![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Vite-blue)
+  ![Backend](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-green)
+  ![AI](https://img.shields.io/badge/AI-Python%20%7C%20FastAPI-purple)
+  ![Database](https://img.shields.io/badge/Database-PostgreSQL-blue)
+</p>
 
-```bash
-npm install
-npm run dev
+---
+
+## 📌 Overview
+
+**CyberLens** is an AI-assisted email threat detection and digital forensic intelligence platform designed to identify, analyze, and investigate potentially malicious emails.
+
+Traditional email security systems primarily focus on classifying emails as legitimate or malicious. However, identifying a phishing email is only the beginning of a cybersecurity investigation.
+
+CyberLens takes a deeper approach by combining email header forensics, AI-based threat detection, IP geolocation, domain intelligence, URL analysis, and digital evidence preservation into a unified investigation platform.
+
+It helps security analysts understand:
+- Who potentially sent the suspicious email?
+- Are the email authentication checks valid?
+- Are the sender and Reply-To addresses consistent?
+- What IP addresses, URLs, and domains are involved?
+- What infrastructure did the email travel through?
+- Are there connections to known malicious indicators?
+- Why was the email classified as suspicious?
+- What evidence can be preserved for further investigation?
+
+**Core Concept: We don't just detect malicious emails. We investigate them.**
+
+## 🎯 Problem Statement
+
+Email remains one of the most common attack vectors for cyber threats, including phishing, impersonation, credential theft, and business email compromise.
+
+Existing detection approaches may identify suspicious emails but often provide limited visibility into the underlying infrastructure, sender authenticity, threat relationships, and forensic evidence.
+
+Security analysts need a unified solution that combines detection, investigation, threat intelligence, and evidence analysis.
+
+## 💡 Our Solution
+
+CyberLens provides a multi-layer forensic investigation engine that processes suspicious emails and extracts meaningful security intelligence.
+
+The platform combines:
+- AI-assisted phishing and social engineering detection.
+- Email header and authentication analysis.
+- IP address and domain intelligence.
+- Approximate geographical infrastructure mapping.
+- Threat indicator extraction and correlation.
+- Evidence preservation and forensic reporting.
+
+Rather than relying on a single AI prediction, CyberLens combines deterministic security checks with AI-assisted reasoning to provide explainable investigation results.
+
+## 🚀 Key Features
+
+### 1. AI-Based Email Threat Detection
+- Phishing email classification.
+- Sender impersonation detection.
+- Business Email Compromise indicators.
+- Social engineering and urgency detection.
+- Suspicious content and credential harvesting analysis.
+- Explainable AI findings.
+- Threat severity and risk assessment.
+
+### 2. Advanced Email Header Forensics
+- Email metadata extraction.
+- Sender and recipient analysis.
+- Reply-To and Return-Path mismatch detection.
+- Received-header analysis.
+- SMTP routing reconstruction.
+- SPF, DKIM, and DMARC result analysis.
+- Suspicious timestamp and header anomaly detection.
+
+### 3. IP Geolocation & Infrastructure Intelligence
+- IP address extraction.
+- Approximate geographical location mapping.
+- Country, region, and city information where available.
+- ASN and ISP identification.
+- Hosting provider identification.
+- VPN, proxy, and Tor indicators where supported.
+- IP reputation and abuse intelligence.
+
+*Geolocation indicates approximate network infrastructure location, not the sender's exact physical location.*
+
+### 4. Threat Intelligence & IOC Extraction
+- Suspicious URL identification.
+- Domain reputation analysis.
+- IP reputation analysis.
+- WHOIS and DNS intelligence.
+- Extraction of Indicators of Compromise (IOCs).
+- Integration with external threat intelligence providers.
+- Historical indicator correlation.
+
+### 5. Digital Forensic Investigation
+- Investigation and case management.
+- Secure evidence collection.
+- SHA-256 evidence hashing.
+- Chain-of-custody tracking.
+- Investigation activity logs.
+- Evidence timeline.
+- Analyst notes and investigation records.
+
+### 6. Threat Relationship Visualization
+Interactive visualization of relationships between:
+
+`Email → Sender → Domain → IP Address → ASN → Threat Intelligence`
+
+Helps analysts understand connections between suspicious indicators and potentially related infrastructure.
+
+### 7. AI Forensic Assistant
+- Investigation summaries.
+- Explainable threat findings.
+- Contextual investigation assistance.
+- Recommended investigation actions.
+- Evidence-based analysis.
+
+### 8. Forensic Report Generation
+Generate structured investigation reports containing:
+- Email metadata.
+- Header analysis.
+- Authentication results.
+- AI threat assessment.
+- IP and domain intelligence.
+- Extracted indicators.
+- Evidence hashes.
+- Investigation timeline.
+- Analyst conclusions.
+
+## 🔄 Investigation Workflow
+
+CyberLens follows a structured investigation pipeline:
+
+```text
+       EMAIL INPUT
+            |
+            ▼
+       EMAIL PARSER
+            |
+            ▼
+    HEADER FORENSICS
+            |
+            ▼
+   SPF / DKIM / DMARC
+            |
+            ▼
+     IOC EXTRACTION
+            |
+            ▼
+    URL & DOMAIN ANALYSIS
+            |
+            ▼
+    IP INTELLIGENCE
+            |
+            ▼
+    GEOLOCATION ANALYSIS
+            |
+            ▼
+     AI THREAT ANALYSIS
+            |
+            ▼
+     RISK ASSESSMENT
+            |
+            ▼
+  INVESTIGATION DASHBOARD
+            |
+            ▼
+    FORENSIC REPORT
 ```
 
-Then open the Vite URL shown in the terminal.
+## 🛠️ Technology Stack
 
-## Run the backend
-Open another terminal inside `backend`:
+| Category | Technologies |
+|---|---|
+| Frontend | React.js, Vite, JavaScript |
+| UI & Styling | Tailwind CSS, shadcn/ui |
+| Backend | Node.js, Express.js |
+| Database | PostgreSQL |
+| ORM | Prisma |
+| AI Service | Python, FastAPI, Pydantic |
+| AI Integration | LLM API, optional DistilBERT |
+| Data Visualization | Recharts, React Flow |
+| Geolocation | Leaflet, React-Leaflet |
+| Authentication | JWT, bcrypt |
+| API Communication | Axios, REST APIs |
+| Development Tools | Git, GitHub, VS Code |
 
-```bash
-npm install
-npm run dev
+## 🏗️ System Architecture
+
+```text
+              FRONTEND
+           React + Vite
+                 |
+                 ▼
+           REST API LAYER
+           Node.js + Express
+                 |
+                 ▼
+        INVESTIGATION ENGINE
+                 |
+       ┌─────────┼──────────┐
+       ▼         ▼          ▼
+   EMAIL       THREAT       AI
+  FORENSICS   INTELLIGENCE ANALYSIS
+       |         |          |
+       └─────────┼──────────┘
+                 |
+                 ▼
+          PostgreSQL
+            Prisma
+                 |
+                 ▼
+       INVESTIGATION RESULTS
+                 |
+       ┌─────────┼──────────┐
+       ▼         ▼          ▼
+   DASHBOARD   THREAT     FORENSIC
+              GRAPH       REPORTS
 ```
 
-The API runs on port 4000.
+## 🌐 External Intelligence Integrations
 
-## PostgreSQL
-Copy `.env.example` to `.env` and set:
+The platform is designed to support integration with cybersecurity intelligence services, including:
 
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cyberlens
-JWT_SECRET=replace-this-secret
-PORT=4000
-```
+| Service | Purpose |
+|---|---|
+| VirusTotal | URL, domain and file reputation |
+| AbuseIPDB | IP abuse intelligence |
+| URLhaus | Malicious URL intelligence |
+| Google Safe Browsing | Unsafe URL detection |
+| IPinfo | IP geolocation and network information |
+| WHOIS / RDAP | Domain registration intelligence |
 
-Run `backend/db/schema.sql` in PostgreSQL.
+External services may require API keys and are integrated through backend service adapters.
 
-The frontend has a fully functional demo mode, so PostgreSQL is not required just to view the UI.
+## 🔮 Future Scope
 
-## Primary judge flow
-Landing → Login → Dashboard → New Investigation → Upload demo evidence → Analysis → Result → Forensics → Authentication → SMTP → Threat Graph → Geolocation → Campaign → Evidence → Report.
+- Real-time email threat monitoring.
+- Advanced phishing detection models.
+- Automated campaign correlation.
+- Enhanced infrastructure relationship mapping.
+- Advanced anomaly detection.
+- Improved AI forensic investigation assistant.
+- SOC and SIEM integrations.
+- Automated investigation workflows.
+- Advanced threat intelligence visualization.
 
-## Security architecture
-Raw evidence and processed analysis are conceptually separated. Uploaded files are treated as untrusted evidence and must never be executed. Production deployment should add isolated parsing workers, encrypted object storage, strict validation, CSP/HSTS, rate limiting, Argon2/bcrypt, audit immutability, and real threat-intelligence adapters.
+## 🔒 Security & Privacy
 
-All demo identities, domains and infrastructure are fictional.
+CyberLens is designed with security and forensic evidence integrity as core principles.
 
-## AI service (now functional)
-CyberLens includes a local FastAPI NLP service at `ai-service/main.py`. It analyzes email language and supplied evidence and returns a structured verdict, confidence, AI score, and explainable findings. The Node API calls it automatically and falls back to local Node NLP if the Python service is unavailable.
+- Secure evidence storage and access control.
+- SHA-256 evidence integrity verification.
+- Protected environment variables and API credentials.
+- Safe email and attachment handling.
+- Input validation and API security.
+- No automatic execution of suspicious attachments.
+- Controlled third-party intelligence integrations.
 
-Run in a separate terminal:
-```bash
-cd ai-service
-python -m venv .venv
-# Windows: .venv\\Scripts\\activate
-# macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
-Then start the backend and frontend as usual. The UI will show the AI model name and whether `local-ai` or `local-fallback` was used.
+## ⚠️ Disclaimer
+
+CyberLens is intended for educational, research, and authorized cybersecurity investigation purposes.
+
+All investigations should be performed using emails, systems, and digital evidence that the user is authorized to access.
+
+AI-generated findings and threat scores should be treated as analytical assistance and verified against supporting evidence.
+
+---
+
+## 👩‍💻 Developer
+
+**Mahi Rajput**
+
+B.Tech — Computer Science & Business Systems
+
+GitHub: [@mahiiyyy](https://github.com/mahiiyyy)
+
+---
+
+<p align="center">
+  **CYBERLENS**
+  <br/>
+  Detection is only the beginning. 🔐
+</p>
