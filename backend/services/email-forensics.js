@@ -38,6 +38,28 @@ const parseAuth = headers => {
   return { spf: read("spf"), dkim: read("dkim"), dmarc: read("dmarc"), source: values.length ? "Authentication-Results header" : "not present" };
 };
 
+function headerValues(headers,name) {
+  const value=headers.get(name);
+  if(!value)return [];
+  return (Array.isArray(value)?value:[value]).map(item=>typeof item==="string"?item:String(item.value||item.text||"")).filter(Boolean);
+}
+function parseReceivedTrace(headers) {
+  const received=headerValues(headers,"received");
+  // RFC 5322 Received fields are prepended by each receiving MTA: reverse to show oldest first.
+  return received.slice(0,30).reverse().map((raw,index)=>{
+    const parts=raw.split(";");
+    const dateText=parts.length>1?parts.slice(1).join(";").trim():"";
+    const route=parts[0].replace(/\s+/g," ").trim();
+    const from=route.match(/\bfrom\s+([^\s(]+)/i)?.[1]||null;
+    const by=route.match(/\bby\s+([^\s(]+)/i)?.[1]||null;
+    const protocol=route.match(/\bwith\s+([^\s;]+)/i)?.[1]||null;
+    const ipMatches=[...route.matchAll(/\[([0-9a-f:.]+)\]/gi)].map(m=>m[1]).filter(value=>isIP(value));
+    let timestamp=null;
+    if(dateText){const parsedDate=new Date(dateText);if(!Number.isNaN(parsedDate.getTime()))timestamp=parsedDate.toISOString();}
+    return {hop:index+1,from,by,protocol,ips:[...new Set(ipMatches)],timestamp,raw:clean(raw).slice(0,2000)};
+  });
+}
+
 export async function parseEmailEvidence(raw, supplied = {}) {
   const parsed = await simpleParser(raw, { skipHtmlToText: false, skipTextToHtml: true, maxHtmlLengthToParse: 1_500_000 });
   if (parsed.attachments.length > 30) throw new Error("Too many attachments (maximum 30).");
@@ -49,7 +71,7 @@ export async function parseEmailEvidence(raw, supplied = {}) {
   const textBody = parsed.text || (typeof parsed.html === "string" ? parsed.html.replace(/<[^>]*>/g, " ") : "") || String(raw);
   const urls = extractUrls([textBody, parsed.html || ""].join("\n")).concat(supplied.urls || []);
   const uniqueUrls = [...new Set(urls)].slice(0, 500);
-  const authentication = parseAuth(parsed.headers);
+  const authentication = parseAuth(parsed.headers);\n  const smtpTrace = parseReceivedTrace(parsed.headers);
   const mismatches = [];
   const fromDomain = domainOf(sender);
   const replyDomain = domainOf(replyTo);
@@ -96,7 +118,7 @@ export async function parseEmailEvidence(raw, supplied = {}) {
     authenticationSource: authentication.source,
     header_mismatches: [...new Set([...(supplied.header_mismatches || []), ...mismatches])],
     parsedHeaders: {
-      messageId: clean(parsed.messageId),
+      messageId: clean(parsed.messageId),\n      smtpTrace,
       date: parsed.date ? parsed.date.toISOString() : null,
       contentType: clean(parsed.headers.get("content-type")?.text),
       transferEncoding: clean(parsed.headers.get("content-transfer-encoding")?.text),
