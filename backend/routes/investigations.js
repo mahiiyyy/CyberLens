@@ -141,7 +141,8 @@ router.post("/analyze", requireAuth, async (req,res,next)=>{
       [req.user.sub,"INVESTIGATION_CREATED","CASE",caseId,JSON.stringify({caseNo,sha256,score:result.score})]
     );
     await client.query("COMMIT");
-    const threatIntel = await enrichCaseIocs(caseId);
+    let threatIntel = {provider:"VirusTotal",configured:Boolean(process.env.VIRUSTOTAL_API_KEY),results:[],message:"Threat intelligence enrichment unavailable."};
+    try { threatIntel = await enrichCaseIocs(caseId); } catch { /* Keep the saved investigation available if the provider/cache is down. */ }
     res.status(201).json({...result,caseUuid:caseId,evidenceSha256:sha256,threatIntel});
   } catch(err) {
     await client.query("ROLLBACK").catch(()=>{});
