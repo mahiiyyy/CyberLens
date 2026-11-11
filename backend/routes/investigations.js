@@ -5,6 +5,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { pool } from "../db/pool.js";
 import { parseEmailEvidence } from "../services/email-forensics.js";
 import { enrichCaseIocs } from "../services/threat-intel.js";
+import { enrichCaseDomains } from "../services/domain-intel.js";
 
 const router = Router();
 const AI_URL = process.env.AI_SERVICE_URL || "http://127.0.0.1:8000";
@@ -142,8 +143,10 @@ router.post("/analyze", requireAuth, async (req,res,next)=>{
     );
     await client.query("COMMIT");
     let threatIntel = {provider:"VirusTotal",configured:Boolean(process.env.VIRUSTOTAL_API_KEY),results:[],message:"Threat intelligence enrichment unavailable."};
+    let domainIntel = {lookedUp:0,results:[]};
     try { threatIntel = await enrichCaseIocs(caseId); } catch { /* Keep the saved investigation available if the provider/cache is down. */ }
-    res.status(201).json({...result,caseUuid:caseId,evidenceSha256:sha256,threatIntel});
+    try { domainIntel = await enrichCaseDomains(caseId); } catch { /* DNS/RDAP is supplemental and must not fail case creation. */ }
+    res.status(201).json({...result,caseUuid:caseId,evidenceSha256:sha256,threatIntel,domainIntel});
   } catch(err) {
     await client.query("ROLLBACK").catch(()=>{});
     next(err);
@@ -166,6 +169,14 @@ router.get("/:caseNo/threat-intel", requireAuth, async (req,res,next)=>{
     if(!owned.rowCount) return res.status(404).json({error:"Investigation not found"});
     const threatIntel=await enrichCaseIocs(owned.rows[0].id);
     res.json(threatIntel);
+  } catch(err) { next(err); }
+});
+
+router.get("/:caseNo/domain-intel", requireAuth, async (req,res,next)=>{
+  try {
+    const owned=await pool.query("SELECT id FROM cases WHERE case_no=$1 AND investigator_id=$2",[req.params.caseNo,req.user.sub]);
+    if(!owned.rowCount) return res.status(404).json({error:"Investigation not found"});
+    res.json(await enrichCaseDomains(owned.rows[0].id));
   } catch(err) { next(err); }
 });
 
