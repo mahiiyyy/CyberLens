@@ -213,6 +213,39 @@ router.get("/:caseNo/domain-intel", requireAuth, async (req,res,next)=>{
   } catch(err) { next(err); }
 });
 
+router.get("/:caseNo/graph", requireAuth, async (req,res,next)=>{
+  try {
+    const found=await pool.query("SELECT c.id,c.case_no,c.title,c.result FROM cases c WHERE c.case_no=$1 AND c.investigator_id=$2",[req.params.caseNo,req.user.sub]);
+    if(!found.rowCount)return res.status(404).json({error:"Investigation not found"});
+    const row=found.rows[0];
+    const [iocRows,evidenceRows]=await Promise.all([
+      pool.query("SELECT value,kind,verdict FROM iocs WHERE case_id=$1 ORDER BY kind,value LIMIT 100",[row.id]),
+      pool.query("SELECT processed_analysis FROM evidence WHERE case_id=$1 ORDER BY created_at DESC LIMIT 1",[row.id])
+    ]);
+    const result=row.result||{};
+    const evidence=evidenceRows.rows[0]?.processed_analysis?.evidence||result.evidence||{};
+    const nodes=[{id:"case",type:"CASE",label:row.case_no,detail:row.title}];
+    const edges=[];
+    const add=(id,type,label,detail="")=>{if(!nodes.some(n=>n.id===id)){nodes.push({id,type,label,detail});edges.push({source:"case",target:id,relation:"CONTAINED_IN"});}};
+    const sender=String(evidence.sender||"");
+    if(sender)add("sender:"+sender,"SENDER",sender,"Parsed From address");
+    for(const ioc of iocRows.rows){
+      const id=ioc.kind.toLowerCase()+":"+ioc.value;
+      add(id,ioc.kind,ioc.value,ioc.verdict);
+    }
+    const trace=evidence.parsedHeaders?.smtpTrace||[];
+    for(const hop of trace){
+      if(hop.from)add("host:"+hop.from,"SMTP_HOST",hop.from,"Received header hop "+hop.hop);
+      if(hop.by)add("host:"+hop.by,"SMTP_HOST",hop.by,"Received header hop "+hop.hop);
+      for(const ip of hop.ips||[])add("ip:"+ip,"IP",ip,"Observed in Received header");
+    }
+    for(const attachment of evidence.parsedHeaders?.attachments||[]){
+      if(attachment.sha256)add("attachment:"+attachment.sha256,"ATTACHMENT",attachment.filename||attachment.sha256,attachment.sha256);
+    }
+    res.json({case:{caseNo:row.case_no,title:row.title},nodes,edges,trace});
+  } catch(err){next(err);}
+});
+
 router.get("/:caseNo/evidence", requireAuth, async (req,res,next)=>{
   try {
     const owned=await pool.query(
