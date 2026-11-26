@@ -1,42 +1,27 @@
-import React from "react";
-import { ArrowUpRight, ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { AreaChart, Area, ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
-import { Badge, Button, Card, PageTitle, Section } from "../components/ui";
-import { investigations } from "../data/demo";
+import React,{useEffect,useState} from "react";
+import {useNavigate} from "react-router-dom";
+import {AreaChart,Area,ResponsiveContainer,PieChart,Pie,Cell,Tooltip,XAxis,YAxis} from "recharts";
+import {Badge,Button,Card,PageTitle,Section} from "../components/ui";
+import {api} from "../lib/api";
 
-const activity = [42,58,38,76,55,88,71,93,64,80,92,68].map((v,i)=>({h:`${i}:00`,v}));
-const dist = [{name:"Critical",value:31},{name:"AI signals",value:42},{name:"Auth",value:27}];
-
-export default function Dashboard() {
-  const nav = useNavigate();
-  return <div className="fade-up">
-    <PageTitle eyebrow="Security Operations Center" title="Investigation Command" sub="Demo telemetry · deterministic checks + evidence-grounded AI"/>
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-      {[["24","Active Cases"],["7","Critical Threats","red"],["1,284","Emails Analyzed"],["346","Threats Detected"],["92","Suspicious Infra"],["48","Investigations Today"]].map(([v,l,c])=><Card className="p-4" key={l}><div className={`text-2xl font-black ${c==="red"?"text-red-300":"text-white"}`}>{v}</div><div className="mt-1 text-[10px] text-slate-600">{l}</div></Card>)}
-    </div>
-    <div className="mt-4 grid gap-4 lg:grid-cols-3">
-      <Section title="Threat activity" className="lg:col-span-2">
-        <div className="h-56"><ResponsiveContainer width="100%" height="100%"><AreaChart data={activity}><defs><linearGradient id="cy" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#22d3ee" stopOpacity=".25"/><stop offset="100%" stopColor="#22d3ee" stopOpacity="0"/></linearGradient></defs><Area type="monotone" dataKey="v" stroke="#22d3ee" fill="url(#cy)" strokeWidth={2}/><Tooltip contentStyle={{background:"#0d1422",border:"1px solid #1d2b3f",fontSize:11}}/></AreaChart></ResponsiveContainer></div>
-      </Section>
-      <Section title="Threat distribution">
-        <div className="h-56"><ResponsiveContainer><PieChart><Pie data={dist} dataKey="value" innerRadius={55} outerRadius={82} stroke="none">{dist.map((_,i)=><Cell key={i} fill={["#f87171","#a78bfa","#fbbf24"][i]}/>)}</Pie><Tooltip contentStyle={{background:"#0d1422",border:"1px solid #1d2b3f",fontSize:11}}/></PieChart></ResponsiveContainer></div>
-        <div className="text-center text-[10px] text-slate-500">346 detections · critical 31%</div>
-      </Section>
-    </div>
-    <div className="mt-4">
-      <Section title="Primary case" action={<Badge tone="red">CRITICAL</Badge>}>
-        <div className="flex flex-col gap-4 md:flex-row md:items-center">
-          <div className="flex-1"><div className="font-bold text-white">EML-2026-0912 · Acme Bank Security Alert</div><p className="mt-1 text-xs text-slate-500">Phishing / impersonation · credential theft indicators</p></div>
-          <div className="text-right"><div className="text-3xl font-black text-red-300">92<span className="text-sm text-slate-600">/100</span></div><Button onClick={()=>nav("/result")} className="mt-2">Open Case <ArrowUpRight className="ml-1 inline" size={13}/></Button></div>
-        </div>
-      </Section>
-    </div>
-    <Card className="mt-4 overflow-hidden">
-      <div className="flex items-center justify-between p-4"><h2 className="text-sm font-bold">Recent investigations</h2><Button onClick={()=>nav("/investigate")}>+ New Investigation</Button></div>
-      {investigations.map(r=><button key={r[0]} onClick={()=>nav("/result")} className="grid w-full grid-cols-12 gap-2 border-t border-cyber-line p-4 text-left text-xs hover:bg-white/[.02]">
-        <span className="col-span-3 text-cyan-300 md:col-span-2">{r[0]}</span><span className="col-span-5 text-slate-300 md:col-span-5">{r[1]}</span><span className="col-span-2"><Badge tone={r[2]==="CRITICAL"?"red":"amber"}>{r[2]}</Badge></span><span className="hidden text-slate-600 md:col-span-2 md:block">{r[3]}</span><ChevronRight size={15}/>
-      </button>)}
-    </Card>
-  </div>;
+export default function Dashboard(){
+ const nav=useNavigate();
+ const [data,setData]=useState(null),[error,setError]=useState(""),[loading,setLoading]=useState(true);
+ const load=async()=>{setLoading(true);setError("");try{setData(await api("/cases/stats"));}catch(e){setError(e.message);}finally{setLoading(false);}};
+ useEffect(()=>{load();},[]);
+ const stats=data?.stats;
+ const dist=stats?[{name:"Open",value:stats.open},{name:"Closed",value:stats.closed}]:[];
+ const tooltip={background:"#0d1422",border:"1px solid #1d2b3f",fontSize:11};
+ return <div className="fade-up">
+ <PageTitle eyebrow="Security Operations Center" title="Investigation Command" sub="Your saved case activity and current case status."/>
+ <div className="mb-4 flex flex-wrap gap-2"><Button onClick={()=>nav("/investigate")}>+ New Investigation</Button><Button variant="secondary" onClick={()=>nav("/cases")}>Manage Cases</Button><Button variant="secondary" disabled={loading} onClick={load}>Refresh</Button></div>
+ {error&&<p role="alert" className="mb-4 text-sm text-red-300">{error}</p>}
+ <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{[["Total cases",stats?.total],["Open cases",stats?.open],["Closed cases",stats?.closed],["Created today (UTC)",stats?.today]].map(([label,value])=><Card key={label} className="p-4"><div className="text-2xl font-black text-white">{loading?"…":value??"—"}</div><div className="mt-1 text-xs text-slate-400">{label}</div></Card>)}</div>
+ <div className="mt-4 grid gap-4 lg:grid-cols-3">
+ <Section title="Cases created · last 7 UTC days" className="lg:col-span-2">{data?<div className="h-56"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data.activity}><XAxis dataKey="day" tick={{fontSize:10}}/><YAxis allowDecimals={false} tick={{fontSize:10}}/><Tooltip contentStyle={tooltip}/><Area type="monotone" dataKey="count" name="Cases created" stroke="#22d3ee" fill="#164e63" strokeWidth={2}/></AreaChart></ResponsiveContainer></div>:<p className="p-4 text-xs text-slate-500">No statistics loaded.</p>}</Section>
+ <Section title="Case status distribution">{stats?.total>0?<div className="h-56"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={dist} dataKey="value" nameKey="name" innerRadius={55} outerRadius={82} stroke="none">{dist.map((r,i)=><Cell key={r.name} fill={["#22d3ee","#34d399"][i]}/>)}</Pie><Tooltip contentStyle={tooltip}/></PieChart></ResponsiveContainer></div>:<p className="p-4 text-xs text-slate-500">No case distribution available.</p>}<div className="flex justify-center gap-4 text-xs text-slate-400"><span>Open: {stats?.open??"—"}</span><span>Closed: {stats?.closed??"—"}</span></div></Section>
+ </div>
+ <Section title="Recent saved cases" className="mt-4" action={<Button variant="secondary" onClick={()=>nav("/cases")}>All cases</Button>}>{loading?<p className="text-xs text-slate-500">Loading…</p>:data?.recent?.length?data.recent.map(r=><div key={r.id} className="flex flex-wrap items-center gap-3 border-b border-cyber-line py-3 text-xs"><span className="flex-1 break-all text-slate-200">{r.title}</span><Badge tone={r.status==="Closed"?"green":"amber"}>{r.status}</Badge><span className="text-slate-500">{new Date(r.created_at).toLocaleDateString()}</span></div>):<p className="text-xs text-slate-500">{error?"Unable to load cases.":"No saved cases yet."}</p>}</Section>
+ <p className="mt-4 text-xs text-slate-500">Statistics reflect saved case records, not email analysis totals. Threat statistics will be available after investigation persistence is implemented.</p>
+ </div>;
 }
