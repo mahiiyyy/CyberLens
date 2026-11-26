@@ -85,6 +85,16 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+app.get("/api/ready", async (_req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    await pool.query({ text: "SELECT 1 FROM users LIMIT 1", query_timeout: 3000 });
+    return res.json({ ok: true });
+  } catch {
+    return res.status(503).json({ ok: false });
+  }
+});
+
 /* =========================
    API ROUTES
 ========================= */
