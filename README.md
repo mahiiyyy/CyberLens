@@ -311,6 +311,59 @@ The platform is designed to support integration with cybersecurity intelligence 
 
 External services may require API keys and are integrated through backend service adapters.
 
+## ✅ Implemented Investigation Modules (current state)
+
+| Module | Status | Notes |
+|---|---|---|
+| MIME / header parsing | Implemented | Server-side (`mailparser`): From/Reply-To/Return-Path/To/Date/Message-ID, Received chain, reported SPF/DKIM/DMARC, URLs, HTML link mismatches, attachment inventory. `.eml` only, 5 MB max. |
+| Original-file SHA-256 | Implemented | Computed on the server over the exact uploaded bytes (pasted text is hashed as UTF-8 and labelled as such). Per-attachment hashes too. |
+| Saved investigations | Implemented | Opt-in. Nothing is stored unless you tick the consent box. Original bytes need a second opt-in. Strict per-account isolation. |
+| Case management | Implemented | Create, edit title/priority/notes, open/close, link investigations. |
+| Evidence & audit log | Implemented | Re-verify stored originals, compare a file to a recorded hash, integrity-checked downloads, delete original, append-only audit trail (no content stored in it). |
+| Reputation lookups | Implemented (needs keys) | VirusTotal and AbuseIPDB. Per-request confirmation, minimised indicators, never visits anything. |
+| Relationship graph | Implemented | Built only from parsed message fields; each edge shows where it was observed. |
+| Reports | Implemented | Generated server-side from the stored record; detailed or executive; text download / print. |
+| Evidence-grounded summaries | Implemented | Rule-based (no external service) or AI (needs key). Every statement cites numbered facts; uncited AI output is dropped. |
+| Geolocation, SMTP/SPF/DKIM/DMARC re-verification, campaign correlation, Outlook `.msg` | **Not implemented** | Shown as "Planned" in the UI. |
+
+### Configuration (`backend/.env`)
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL`, `JWT_SECRET` (32+ chars) | Yes | PostgreSQL and session signing. Schema is applied at startup (additive, idempotent). |
+| `VIRUSTOTAL_API_KEY` | Optional | URL / domain / IP / file-hash reputation. Without it the UI reports "not configured". |
+| `ABUSEIPDB_API_KEY` | Optional | IP reputation. |
+| `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | Optional | AI summaries. Without it only the rule-based summary is available. |
+| `AI_SERVICE_URL` | Optional | Local FastAPI text-heuristic service; a labelled keyword fallback is used if unreachable. |
+
+New npm dependency: `mailparser`. Run `npm install` in `backend/`.
+
+### Privacy and safety behaviour
+
+- URLs are never fetched or visited; attachments are hashed and statically inspected, never opened or executed.
+- Reputation lookups send only the indicators you select, after you confirm. URL query strings, fragments and credentials are stripped; private/reserved IPs are never sent; email content is never sent. Providers may log queries.
+- AI summaries send only numbered evidence facts (including the attacker-controlled subject line), never the body or attachment contents. Output is validated to cite real facts, but a model can still misstate a fact; verify against the cited evidence.
+- "Not found" or "no detections" from a provider is never presented as "safe".
+- Authentication results are those *reported in the message headers*; CyberLens does not re-verify them.
+- The built-in sample email is labelled **SAMPLE DATA** everywhere it appears and is excluded from dashboard statistics.
+
+### Known limitations
+
+- The risk score is heuristic and uncalibrated; the "confidence" shown is the text model's self-reported value.
+- Received-header IPs and hostnames are claims made by the message; hops before your own mail server can be forged.
+- Stored originals are kept in PostgreSQL (`BYTEA`) without application-level encryption; rely on database/disk encryption for at-rest protection. Audit logs are append-only by convention (no API to edit them), not cryptographically tamper-evident.
+- Prompt-injection in email text cannot be fully excluded for AI summaries; the citation check limits but does not eliminate its effect.
+- Reputation lookups are rate limited to 30/hour per account on top of provider quotas; at most 10 indicators per request.
+
+### Tests
+
+```
+cd backend && npm install
+node --test tests/parser.test.js tests/services.test.js         # no database needed
+CYBERLENS_TEST_DB=1 DATABASE_URL=... JWT_SECRET=... node --test tests/*.test.js   # full suite (CI does this)
+cd ../frontend && npm run build
+```
+
 ## 🔮 Future Scope
 
 - Real-time email threat monitoring.

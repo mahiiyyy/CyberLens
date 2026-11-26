@@ -11,6 +11,9 @@ import { pool } from "./db/pool.js";
 import authRoutes from "./routes/auth.js";
 import investigationRoutes from "./routes/investigations.js";
 import caseRoutes from "./routes/cases.js";
+import evidenceRoutes from "./routes/evidence.js";
+import reputationRoutes from "./routes/reputation.js";
+import auditRoutes from "./routes/audit.js";
 
 const app = express();
 
@@ -104,6 +107,9 @@ app.use("/api/auth", authRoutes);
 
 app.use("/api/investigations", investigationRoutes);
 app.use("/api/cases", caseRoutes);
+app.use("/api/evidence", evidenceRoutes);
+app.use("/api/reputation", reputationRoutes);
+app.use("/api/audit", auditRoutes);
 
 if (process.env.NODE_ENV === "production") {
   const dist = fileURLToPath(new URL("../frontend/dist/", import.meta.url));
@@ -126,6 +132,11 @@ app.use((err, _req, res, _next) => {
       error: "CORS blocked",
       message: err.message,
     });
+  }
+
+  // Body-parser errors (e.g. 413 payload too large, 400 malformed JSON) are client errors.
+  if (err.status >= 400 && err.status < 500 && err.expose) {
+    return res.status(err.status).json({ error: err.status === 413 ? "Request body is too large." : "Invalid request body." });
   }
 
   res.status(500).json({

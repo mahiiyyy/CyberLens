@@ -2,7 +2,7 @@ import React, {useEffect,useState} from "react";
 import {api,clearAuth} from "../lib/api";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
-  Activity, BrainCircuit, Database, FileCheck2, FileSearch, Globe2,
+  Activity, BrainCircuit, Database, FileCheck2, FileClock, FileSearch, Globe2,
   Hash, LayoutDashboard, LockKeyhole, Mail, Map, Menu, Network, Server, Settings,
   ShieldAlert, SlidersHorizontal, Workflow
 } from "lucide-react";
@@ -10,6 +10,7 @@ import {
 const operations = [
   ["/dashboard", "SOC Dashboard", LayoutDashboard],
   ["/investigate", "New Investigation", FileSearch],
+  ["/history", "Saved Investigations", FileClock],
   ["/cases", "Cases", Database],
   ["/iocs", "IOC Center", Hash],
   ["/reports", "Reports", FileCheck2]
@@ -19,12 +20,13 @@ const investigation = [
   ["/result", "Investigation Result", Activity],
   ["/forensics", "Email Forensics", Mail],
   ["/authentication", "Authentication", ShieldAlert],
+  ["/graph", "Threat Graph", Network],
   ["/evidence", "Evidence & Custody", LockKeyhole],
   ["/assistant", "Investigation Summary", BrainCircuit],
   ["/settings", "Account Settings", SlidersHorizontal]
 ];
 
-const planned = [ ["/intel", "URL / Domain / IP", Globe2], ["/smtp", "SMTP Trace", Server], ["/graph", "Threat Graph", Network], ["/geo", "Geolocation", Map], ["/campaigns", "Campaign Correlation", Workflow] ];
+const planned = [ ["/intel", "Infrastructure Lookups", Globe2], ["/smtp", "SMTP Verification", Server], ["/geo", "Geolocation", Map], ["/campaigns", "Campaign Correlation", Workflow] ];
 
 function Item({ item, onSelect }) {
   const [path, label, Icon] = item;
