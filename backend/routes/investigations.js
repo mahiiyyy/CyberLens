@@ -242,6 +242,8 @@ router.get("/:id/audit", async (req, res, next) => {
   const id = uuid.safeParse(req.params.id);
   if (!id.success) return res.status(400).json({ error: "Invalid investigation id." });
   try {
+    const row = await owned(id.data, req.user.id);
+    if (!row) return res.status(404).json({ error: "Investigation not found" });
     const r = await pool.query("SELECT id,action,entity,entity_id,metadata,created_at FROM audit_logs WHERE user_id=$1 AND ((entity='investigation' AND entity_id=$2) OR (entity='evidence' AND metadata->>'investigationId'=$2)) ORDER BY created_at DESC LIMIT 200", [req.user.id, id.data]);
     res.set("Cache-Control", "no-store").json({ events: r.rows });
   } catch (e) { next(e); }
