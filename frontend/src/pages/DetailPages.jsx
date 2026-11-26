@@ -4,14 +4,27 @@ import { Copy, Download, MapPin, MessageSquare, Search, Server, ShieldCheck } fr
 import { Badge, Button, Card, PageTitle, Section } from "../components/ui";
 import { demo, campaigns, iocs } from "../data/demo";
 
-export function Forensics(){return <><PageTitle eyebrow="Evidence Layer" title="Email Forensics" sub="Raw header evidence is preserved separately from processed fields."/><div className="grid gap-4 lg:grid-cols-2"><Section title="Message metadata">{Object.entries({From:demo.from,To:demo.to,"Reply-To":demo.replyTo,"Return-Path":demo.returnPath,Subject:demo.subject,Date:demo.date,"Message-ID":demo.messageId}).map(([k,v])=><div key={k} className="grid grid-cols-3 border-b border-cyber-line py-3 text-xs"><span className="text-slate-600">{k}</span><span className={`col-span-2 ${["From","Reply-To"].includes(k)?"text-red-300":"text-slate-300"}`}>{v}</span></div>)}</Section><Section title="Raw header viewer"><pre className="overflow-auto whitespace-pre-wrap rounded-lg bg-black/20 p-4 font-mono text-[10px] leading-6 text-slate-400">{`Received: from mx-acme-alert.example (198.51.100.42)
-Authentication-Results: spf=fail; dkim=fail; dmarc=fail
-From: security@acme-bank-alert.example
-Reply-To: verify@acme-support.example
-Return-Path: bounce@mx-acme-alert.example
-X-Demo-Indicator: lookalike-domain`}</pre><div className="mt-3 text-xs text-amber-300">Why it matters: Reply-To and Return-Path diverge from the visible identity.</div></Section></div></>}
-
-export function Authentication(){return <><PageTitle eyebrow="Deterministic Verification" title="Authentication" sub="SPF, DKIM and DMARC are deterministic controls — not AI guesses."/><div className="grid gap-4 md:grid-cols-3">{[["SPF","FAILED","198.51.100.42 is not authorized for the claimed sender."],["DKIM","FAILED","No valid demo signature could be verified."],["DMARC","FAILED","Alignment policy is not satisfied."]].map(([a,s,d])=><Card className="p-5" key={a}><div className="flex justify-between"><span className="text-xl font-black">{a}</span><Badge tone="red">{s}</Badge></div><p className="mt-4 text-xs text-slate-400">{d}</p><div className="mt-4 text-[9px] font-mono text-slate-700">deterministic_auth_engine</div></Card>)}</div><Section title="Human-readable conclusion" className="mt-4"><p className="text-sm text-slate-300">The claimed sender cannot be authenticated as an authorized Acme Bank source. Combined with the lookalike domain and credential lure, the signal materially increases risk.</p></Section></>}
+function currentInvestigation(){
+ try{const r=JSON.parse(sessionStorage.getItem("cyberlens_result")||"null");return r?.status==="complete"?r:null;}catch{return null;}
+}
+function NoInvestigation({title}){
+ return <><PageTitle eyebrow="Investigation" title={title}/><Card className="p-5"><p className="text-sm text-slate-400">No completed investigation in this session.</p><a className="mt-3 inline-block text-sm text-cyan-300" href="/investigate">Start an investigation</a></Card></>;
+}
+export function Forensics(){
+ const result=currentInvestigation();
+ if(!result)return <NoInvestigation title="Email Forensics"/>;
+ const e=result.evidence||{};
+ const rows=[["From",e.sender],["Reply-To",e.reply_to],["Return-Path",e.return_path],["Subject",e.subject]];
+ const raw=typeof e.body==="string"?e.body:"";
+ return <><PageTitle eyebrow="Evidence Layer" title="Email Forensics" sub="Metadata and submitted email text from the current investigation."/><div className="grid gap-4 lg:grid-cols-2"><Section title="Submitted message metadata">{rows.map(([k,v])=><div key={k} className="grid grid-cols-3 gap-2 border-b border-cyber-line py-3 text-xs"><span className="text-slate-500">{k}</span><span className="col-span-2 break-all text-slate-300">{v||"Not supplied"}</span></div>)}<p className="mt-4 text-xs text-slate-500">These fields are supplied by the current intake parser, not independently verified identities.</p></Section><Section title="Submitted email text"><pre className="max-h-96 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-black/20 p-4 font-mono text-xs leading-6 text-slate-400">{raw||"No original email text available."}</pre><p className="mt-3 text-xs text-slate-500">Displayed as plain text. Original byte integrity and complete MIME parsing have not been verified.</p></Section></div></>;
+}
+export function Authentication(){
+ const result=currentInvestigation();
+ if(!result)return <NoInvestigation title="Email Authentication"/>;
+ const e=result.evidence||{};
+ const rows=[["SPF","Sender Policy Framework"],["DKIM","DomainKeys Identified Mail"],["DMARC","Domain-based Message Authentication, Reporting and Conformance"]];
+ return <><PageTitle eyebrow="Email Authentication" title="Authentication" sub="Reported indicators from the current analysis; independent verification is not implemented."/><div className="grid gap-4 md:grid-cols-3">{rows.map(([key,desc])=>{const status=String(e.authentication?.[key.toLowerCase()]||"UNKNOWN").toUpperCase();const label=["PASS","FAIL"].includes(status)?status:"UNKNOWN";return <Card className="p-5" key={key}><div className="flex justify-between gap-2"><span className="text-xl font-black">{key}</span><Badge tone={label==="FAIL"?"red":label==="PASS"?"cyan":"slate"}>{label==="UNKNOWN"?"UNKNOWN":"REPORTED "+label}</Badge></div><p className="mt-4 text-xs text-slate-400">{desc}</p><p className="mt-3 text-xs text-slate-500">Unverified intake indicator</p></Card>;})}</div><Section title="Interpretation limits" className="mt-4"><p className="text-sm text-slate-300">The intake uses basic text matching, so reported results can be inaccurate or spoofed. A reported pass does not establish authenticity, and a reported failure does not establish malicious intent. Live SPF evaluation, DKIM signature verification and DMARC alignment checks are not yet implemented.</p></Section></>;
+}
 
 export function Intel(){return <><PageTitle eyebrow="Threat Intelligence" title="URL / Domain / IP Intelligence"/><div className="grid gap-4 lg:grid-cols-3"><Section title="URL intelligence"><p className="break-all font-mono text-xs text-red-300">{demo.url}</p>{["HTTPS: Present","Redirect chain: 2 hops","Suspicious parameter: session","Credential path: /login"].map(x=><div key={x} className="border-b border-cyber-line py-2 text-xs">{x}</div>)}<Badge tone="red">RISK 94/100</Badge></Section><Section title="Domain intelligence">{["Age: 19 days","Registrar: Demo Registrar","DNS/MX: Newly observed","Lookalike: Yes","Reputation: Malicious demo signal"].map(x=><div key={x} className="border-b border-cyber-line py-2 text-xs">{x}</div>)}</Section><Section title="IP intelligence">{["Country: Germany (approx.)","ISP: Demo Hosting GmbH","ASN: AS-DEMO-64500","VPN/Proxy: Likely","TOR: Not detected","Reputation: High risk"].map(x=><div key={x} className="border-b border-cyber-line py-2 text-xs">{x}</div>)}</Section></div></>}
 
