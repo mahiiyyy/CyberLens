@@ -10,6 +10,7 @@ import { pool } from "./db/pool.js";
 
 import authRoutes from "./routes/auth.js";
 import investigationRoutes from "./routes/investigations.js";
+import caseRoutes from "./routes/cases.js";
 
 const app = express();
 
@@ -102,6 +103,7 @@ app.get("/api/ready", async (_req, res) => {
 app.use("/api/auth", authRoutes);
 
 app.use("/api/investigations", investigationRoutes);
+app.use("/api/cases", caseRoutes);
 
 if (process.env.NODE_ENV === "production") {
   const dist = fileURLToPath(new URL("../frontend/dist/", import.meta.url));
