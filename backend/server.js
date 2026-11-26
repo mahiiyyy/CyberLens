@@ -127,6 +127,7 @@ app.use((err, _req, res, _next) => {
 
 const port = process.env.PORT || 4000;
 
+if (!process.env.DATABASE_URL || !process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) { throw new Error("DATABASE_URL and a strong JWT_SECRET are required"); }
 if (process.env.DATABASE_URL) {
   await pool.query(await readFile(new URL("./db/schema.sql", import.meta.url), "utf8"));
 }

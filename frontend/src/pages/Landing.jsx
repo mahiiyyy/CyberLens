@@ -25,7 +25,7 @@ export default function Landing() {
         <p className="mt-6 max-w-2xl text-lg text-slate-400">We don't just detect malicious emails. <strong className="text-slate-200">We investigate them.</strong> Trace infrastructure, explain every signal, correlate campaigns and preserve evidence.</p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button onClick={() => nav("/login")}>START INVESTIGATION <ArrowRight className="ml-2 inline" size={15}/></Button>
-          <Button variant="secondary" onClick={() => nav("/dashboard")}>VIEW DEMO</Button>
+          <Button variant="secondary" onClick={() => nav("/login")}>CREATE ACCOUNT</Button>
         </div>
       </section>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">

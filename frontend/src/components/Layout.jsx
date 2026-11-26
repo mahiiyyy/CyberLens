@@ -1,4 +1,5 @@
-import React from "react";
+import React, {useEffect,useState} from "react";
+import {api,clearAuth} from "../lib/api";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   Activity, BrainCircuit, Database, FileCheck2, FileSearch, Globe2,
@@ -37,6 +38,11 @@ function Item({ item }) {
 
 export default function Layout() {
   const nav = useNavigate();
+  const [user,setUser]=useState(null),[error,setError]=useState("");
+  useEffect(()=>{let active=true;const expired=()=>{clearAuth();nav("/login",{replace:true});};window.addEventListener("cyberlens-auth-expired",expired);api("/auth/me").then(r=>{if(active)setUser(r.user);}).catch(e=>{if(active){if(e.status===401)expired();else setError(e.message);}});return()=>{active=false;window.removeEventListener("cyberlens-auth-expired",expired);};},[nav]);
+  const logout=async()=>{try{await api("/auth/logout",{method:"POST"});clearAuth();nav("/login",{replace:true});}catch(e){setError(e.message);}};
+  if(error)return <div className="p-8 text-slate-300">{error}<button className="ml-3 text-cyan-300" onClick={()=>window.location.reload()}>Retry</button></div>;
+  if(!user)return <div className="p-8 text-slate-300">Checking session...</div>;
   return <div className="min-h-screen grid-bg">
     <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-cyber-line bg-[#080d18]/95 px-4 backdrop-blur">
       <div className="flex items-center gap-3">
@@ -45,7 +51,7 @@ export default function Layout() {
       </div>
       <div className="flex items-center gap-4">
         <span className="hidden items-center gap-2 text-[10px] text-slate-500 md:flex"><i className="h-2 w-2 rounded-full bg-emerald-400"/><span>DEMO ENVIRONMENT</span></span>
-        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-purple-400/20 bg-purple-400/10 text-xs text-purple-200">AR</div>
+        <span className="hidden text-xs text-slate-300 sm:block">{user.email}</span><button onClick={logout} className="rounded-lg border border-cyber-line px-3 py-2 text-xs text-cyan-300">Log out</button>
       </div>
     </header>
     <div className="flex">
