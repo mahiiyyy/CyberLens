@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertTriangle, ArrowUpRight, ChevronRight } from "lucide-react";
+import { ArrowUpRight, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AreaChart, Area, ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Badge, Button, Card, PageTitle, Section } from "../components/ui";
@@ -24,12 +24,8 @@ export default function Dashboard() {
         <div className="text-center text-[10px] text-slate-500">346 detections · critical 31%</div>
       </Section>
     </div>
-    <div className="mt-4 grid gap-4 lg:grid-cols-3">
-      <Section title="Critical alerts">
-        {["DMARC failure spike","Lookalike domain cluster","Credential lure detected"].map((x,i)=><div className="flex items-center gap-3 border-b border-cyber-line py-3 last:border-0" key={x}><AlertTriangle size={15} className={i===0?"text-red-400":"text-amber-400"}/><span className="flex-1 text-xs">{x}</span><Badge tone={i===0?"red":"amber"}>{i===0?"CRITICAL":"HIGH"}</Badge></div>)}
-        <Button variant="ghost" className="mt-2 w-full" onClick={()=>nav("/alerts")}>View all alerts</Button>
-      </Section>
-      <Section title="Primary case" className="lg:col-span-2" action={<Badge tone="red">CRITICAL</Badge>}>
+    <div className="mt-4">
+      <Section title="Primary case" action={<Badge tone="red">CRITICAL</Badge>}>
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <div className="flex-1"><div className="font-bold text-white">EML-2026-0912 · Acme Bank Security Alert</div><p className="mt-1 text-xs text-slate-500">Phishing / impersonation · credential theft indicators</p></div>
           <div className="text-right"><div className="text-3xl font-black text-red-300">92<span className="text-sm text-slate-600">/100</span></div><Button onClick={()=>nav("/result")} className="mt-2">Open Case <ArrowUpRight className="ml-1 inline" size={13}/></Button></div>
