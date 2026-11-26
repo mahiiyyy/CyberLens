@@ -7,7 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import Investigation from "./pages/Investigation";
 import Analysis from "./pages/Analysis";
 import Result from "./pages/Result";
-import { Forensics, Authentication, Intel, SMTP, Graph, Geo, Campaigns, Evidence, Cases, Reports, IOCs, Alerts, Assistant, Settings, Placeholder } from "./pages/DetailPages";
+import { Forensics, Authentication, Intel, SMTP, Graph, Geo, Campaigns, Evidence, Cases, Reports, IOCs, Assistant, Settings, Placeholder } from "./pages/DetailPages";
 
 export default function App(){
   return <BrowserRouter>
@@ -30,7 +30,7 @@ export default function App(){
         <Route path="/cases" element={<Cases/>}/>
         <Route path="/reports" element={<Reports/>}/>
         <Route path="/iocs" element={<IOCs/>}/>
-        <Route path="/alerts" element={<Alerts/>}/>
+        <Route path="/alerts" element={<Navigate to="/dashboard" replace/>}/>
         <Route path="/assistant" element={<Assistant/>}/>
         <Route path="/settings" element={<Settings/>}/>
         <Route path="*" element={<Placeholder title="CyberLens Module"/>}/>
