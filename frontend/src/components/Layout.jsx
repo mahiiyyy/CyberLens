@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
-  Activity, AlertTriangle, BrainCircuit, Database, FileCheck2, FileSearch, Globe2,
+  Activity, BrainCircuit, Database, FileCheck2, FileSearch, Globe2,
   Hash, LayoutDashboard, LockKeyhole, Mail, Map, Menu, Network, Server, Settings,
   ShieldAlert, SlidersHorizontal, Workflow
 } from "lucide-react";
@@ -10,7 +10,6 @@ const operations = [
   ["/dashboard", "SOC Dashboard", LayoutDashboard],
   ["/investigate", "New Investigation", FileSearch],
   ["/cases", "Cases", Database],
-  ["/alerts", "Alerts", ShieldAlert],
   ["/iocs", "IOC Center", Hash],
   ["/campaigns", "Campaign Correlation", Workflow],
   ["/reports", "Reports", FileCheck2]
